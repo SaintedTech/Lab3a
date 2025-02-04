@@ -21,7 +21,9 @@ public class MainActivity extends AppCompatActivity {
     private int  CHAIN_LENGTH_COL = 5;
     private void initLayout(){
         ConstraintLayout layout = binding.main;
-        int[][] btnIds = new int[CHAIN_LENGTH_ROW][CHAIN_LENGTH_COL]; // array of TextView IDs
+        int[][] btnIdsHort = new int[CHAIN_LENGTH_ROW][CHAIN_LENGTH_COL]; //
+        int[][] btnIdVert = new int[CHAIN_LENGTH_ROW][CHAIN_LENGTH_COL];
+
         String[][] names = new String[][]
         {{"7", "8", "9", "√", "C"},
          {"4", "5", "6", "÷", "%"},
@@ -36,15 +38,10 @@ public class MainActivity extends AppCompatActivity {
                 btn.setTag("btn" + names[row][col]); // assign tag (for acquiring references later)
                 btn.setText(names[row][col]); // set text (using a string resource)
                 btn.setTextSize(24); // set size
-                btnIds[row][col] = id; // store ID to collection
+                btnIdsHort[row][col] = id; // store ID to collection
+                btnIdVert[col][row] = id;
                 layout.addView(btn); // add to layout
                 //set chains
-                if(row%0 == 0) {
-
-                }
-                else if(row%3==0){
-
-                }
 
 
             }
