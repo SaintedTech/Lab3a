@@ -72,7 +72,10 @@ public class MainActivity extends AppCompatActivity {
                 layout.addView(btn); // add to layout
 
 
-
+                LayoutParams params = btn.getLayoutParams();
+                params.width = ConstraintLayout.LayoutParams.MATCH_PARENT;
+                params.height = ConstraintLayout.LayoutParams.MATCH_PARENT;
+                btn.setLayoutParams(params);
 
 
             }
@@ -86,16 +89,7 @@ public class MainActivity extends AppCompatActivity {
         for(int col[]: btnIdVert){
             set.createVerticalChain(binding.northGuide.getId(), ConstraintSet.TOP, binding.southGuide.getId(), ConstraintSet.BOTTOM, col, null, ConstraintSet.CHAIN_SPREAD);
         }
-        for(int btns[]: btnIdVert){
-            for(int btnNum : btns){
-                View btn = layout.getViewById(btnNum);
-                LayoutParams params = btn.getLayoutParams();
-                params.width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT;
-                params.height = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT;
-                btn.setLayoutParams(params);
 
-            }
-        }
         set.applyTo(layout);
     }
     @Override
