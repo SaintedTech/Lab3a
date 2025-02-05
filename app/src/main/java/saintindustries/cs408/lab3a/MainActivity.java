@@ -8,6 +8,8 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.constraintlayout.widget.ConstraintSet;
+import androidx.constraintlayout.widget.Guideline;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -20,9 +22,17 @@ public class MainActivity extends AppCompatActivity {
     private int CHAIN_LENGTH_ROW = 4;
     private int  CHAIN_LENGTH_COL = 5;
     private void initLayout(){
+        ConstraintSet set = new ConstraintSet();
         ConstraintLayout layout = binding.main;
-        int[][] btnIdsHort = new int[CHAIN_LENGTH_ROW][CHAIN_LENGTH_COL]; //
+        int[][] btnIdsHort = new int[CHAIN_LENGTH_ROW][CHAIN_LENGTH_COL];
         int[][] btnIdVert = new int[CHAIN_LENGTH_ROW][CHAIN_LENGTH_COL];
+
+        TextView display = new TextView(this);
+        display.setId(View.generateViewId());
+        display.setText("0");
+        set.connect(display.getId(), ConstraintSet.TOP, binding.northGuide.getId(), ConstraintSet.BOTTOM);
+
+
 
         String[][] names = new String[][]
         {{"7", "8", "9", "√", "C"},
@@ -41,14 +51,21 @@ public class MainActivity extends AppCompatActivity {
                 btnIdsHort[row][col] = id; // store ID to collection
                 btnIdVert[col][row] = id;
                 layout.addView(btn); // add to layout
-                //set chains
+
 
 
             }
         }
 
+        set.clone(layout);
         //set chains
-
+        for( int row[] : btnIdsHort){
+            set.createHorizontalChain(binding.eastGuide.getId(), ConstraintSet.RIGHT, binding.westGuide.getId(), ConstraintSet.LEFT, row, null, ConstraintSet.CHAIN_SPREAD);
+        }
+        for(int col[]: btnIdVert){
+            set.createVerticalChain(binding.northGuide.getId(), ConstraintSet.TOP, binding.southGuide.getId(), ConstraintSet.BOTTOM, col, null, ConstraintSet.CHAIN_SPREAD);
+        }
+        set.applyTo(layout);
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
