@@ -1,5 +1,6 @@
 package saintindustries.cs408.lab3a;
 
+import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -36,22 +37,30 @@ public class MainActivity extends AppCompatActivity {
         TextView display = new TextView(this);
         display.setId(displayViewID);
         display.setText("0");
-        display.setTextSize(24);
+        display.setTextSize(48);
         display.setTag("display");
+
         layout.addView(display);
 
 
 
+        set.clone(layout);
+        set.connect(display.getId(), ConstraintSet.TOP, binding.northGuide.getId(), ConstraintSet.BOTTOM, 0);
+        set.connect(display.getId(), ConstraintSet.LEFT, binding.westGuide.getId(), ConstraintSet.RIGHT, 0);
+        set.connect(display.getId(), ConstraintSet.RIGHT, binding.eastGuide.getId(), ConstraintSet.LEFT, 0);
+        set.connect(display.getId(), ConstraintSet.BOTTOM, binding.extraGuide.getId(), ConstraintSet.TOP, 0);
+
         set.applyTo(layout);
-        set.connect(display.getId(), ConstraintSet.TOP, binding.northGuide.getId(), ConstraintSet.TOP);
-        set.connect(display.getId(), ConstraintSet.RIGHT, binding.westGuide.getId(), ConstraintSet.LEFT);
-        set.connect(display.getId(), ConstraintSet.LEFT, binding.eastGuide.getId(), ConstraintSet.RIGHT);
 
         display.setGravity(Gravity.CENTER_VERTICAL);
         display.setGravity(Gravity.END);
 
+        LayoutParams params = display.getLayoutParams();
+        params.width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT;
+        params.height = ConstraintLayout.LayoutParams.MATCH_PARENT;
 
 
+        display.setLayoutParams(params);
 
         String[][] names = new String[][]
                 {{"7", "8", "9", "√", "C"},
@@ -61,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         for(int row = 0; row < CHAIN_LENGTH_ROW; row++) {
             for (int col = 0; col < CHAIN_LENGTH_COL; col++) {
+                set.clone(layout);
                 int id = View.generateViewId(); // generate new ID
                 Button btn = new Button(this); // create new TextView
                 btn.setId(id); // assign ID
@@ -70,14 +80,19 @@ public class MainActivity extends AppCompatActivity {
                 btnIdsHort[row][col] = id; // store ID to collection
                 btnIdVert[col][row] = id;
 
-
-
                 layout.addView(btn); // add to layout
 
+                LayoutParams btnParams = btn.getLayoutParams();
+                btnParams.width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT;
+                btnParams.height = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT;
+                btn.setLayoutParams(btnParams);
 
-              //  ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_CONSTRAINT, ConstraintLayout.LayoutParams.MATCH_CONSTRAINT);
 
-
+                set.setMargin(id, ConstraintSet.TOP, 8);
+                set.setMargin(id, ConstraintSet.LEFT, 8);
+                set.setMargin(id, ConstraintSet.RIGHT, 8);
+                set.setMargin(id, ConstraintSet.BOTTOM, 8);
+                set.applyTo(layout);
 
 
 
@@ -87,10 +102,10 @@ public class MainActivity extends AppCompatActivity {
         set.clone(layout);
         //set chains
         for( int row[] : btnIdsHort){
-            set.createHorizontalChain(binding.eastGuide.getId(), ConstraintSet.LEFT, binding.westGuide.getId(), ConstraintSet.RIGHT, row, null, ConstraintSet.CHAIN_SPREAD);
+            set.createHorizontalChain(binding.westGuide.getId(), ConstraintSet.LEFT, binding.eastGuide.getId(), ConstraintSet.RIGHT, row, null, ConstraintSet.CHAIN_SPREAD);
         }
         for(int col[]: btnIdVert){
-            set.createVerticalChain(binding.northGuide.getId(), ConstraintSet.TOP, binding.southGuide.getId(), ConstraintSet.BOTTOM, col, null, ConstraintSet.CHAIN_SPREAD);
+            set.createVerticalChain(binding.extraGuide.getId(), ConstraintSet.BOTTOM, binding.southGuide.getId(), ConstraintSet.TOP, col, null, ConstraintSet.CHAIN_SPREAD);
         }
 
         set.applyTo(layout);
