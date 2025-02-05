@@ -1,6 +1,7 @@
 package saintindustries.cs408.lab3a;
 
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -41,16 +42,13 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-
-        set.connect(display.getId(), ConstraintSet.TOP, binding.main.getId(), ConstraintSet.TOP);
+        set.applyTo(layout);
+        set.connect(display.getId(), ConstraintSet.TOP, binding.northGuide.getId(), ConstraintSet.TOP);
         set.connect(display.getId(), ConstraintSet.RIGHT, binding.westGuide.getId(), ConstraintSet.LEFT);
         set.connect(display.getId(), ConstraintSet.LEFT, binding.eastGuide.getId(), ConstraintSet.RIGHT);
 
-        LayoutParams params = display.getLayoutParams();
-        params.width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT;
-        params.height = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT;
-        display.setLayoutParams(params);
-
+        display.setGravity(Gravity.CENTER_VERTICAL);
+        display.setGravity(Gravity.END);
 
 
 
@@ -79,7 +77,6 @@ public class MainActivity extends AppCompatActivity {
 
               //  ConstraintLayout.LayoutParams params = new ConstraintLayout.LayoutParams(ConstraintLayout.LayoutParams.MATCH_CONSTRAINT, ConstraintLayout.LayoutParams.MATCH_CONSTRAINT);
 
-                btn.setLayoutParams(params);
 
 
 
