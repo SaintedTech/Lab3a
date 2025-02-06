@@ -2,6 +2,7 @@ package saintindustries.cs408.lab3a;
 
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,8 +24,8 @@ import saintindustries.cs408.lab3a.databinding.ActivityMainBinding;
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
-    private int CHAIN_LENGTH_ROW = 4;
-    private int  CHAIN_LENGTH_COL = 5;
+    private int CHAIN_LENGTH_ROW = 3;
+    private int  CHAIN_LENGTH_COL = 4;
     private void initLayout(){
         ConstraintSet set = new ConstraintSet();
         ConstraintLayout layout = binding.main;
@@ -59,23 +60,20 @@ public class MainActivity extends AppCompatActivity {
         params.width = ConstraintLayout.LayoutParams.MATCH_CONSTRAINT;
         params.height = ConstraintLayout.LayoutParams.MATCH_PARENT;
 
-
         display.setLayoutParams(params);
 
-        String[][] names = new String[][]
-                {{"7", "8", "9", "√", "C"},
-                        {"4", "5", "6", "÷", "%"},
-                        {"1", "2", "3", "x", "-"},
-                        {"±", "0", ".", "+", "="}};
-
+        String[] btnGrid = getResources().getStringArray(R.array.buttonGrid);
         for(int row = 0; row < CHAIN_LENGTH_ROW; row++) {
+
             for (int col = 0; col < CHAIN_LENGTH_COL; col++) {
+
+
                 set.clone(layout);
                 int id = View.generateViewId(); // generate new ID
                 Button btn = new Button(this); // create new TextView
                 btn.setId(id); // assign ID
-                btn.setTag("btn" + names[row][col]); // assign tag (for acquiring references later)
-                btn.setText(names[row][col]); // set text (using a string resource)
+                btn.setTag("btn" + btnGrid[row].charAt(col)); // assign tag (for acquiring references later)
+                btn.setText(""+btnGrid[row].charAt(col)); // set text (using a string resource)
                 btn.setTextSize(24); // set size
                 btnIdsHort[row][col] = id; // store ID to collection
                 btnIdVert[col][row] = id;

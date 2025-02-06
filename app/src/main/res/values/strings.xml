@@ -21,4 +21,12 @@
     <string name="btnSubtract">-</string>
     <string name="Result">0</string>
     <string name="btnDecimal">.</string>
+
+
+    <string-array name="buttonGrid">
+        <item>789√C</item>
+        <item>456÷%</item>
+        <item>123X-</item>
+        <item>±0.+=</item>
+    </string-array>
 </resources>
