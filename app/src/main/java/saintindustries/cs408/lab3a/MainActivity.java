@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.view.ViewGroup.LayoutParams;
+import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,14 +20,155 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
+import org.w3c.dom.Text;
+
 import saintindustries.cs408.lab3a.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
+    
 
+    Model model = new Model();
+    TextView display;
+    class CalculatorClickHandler implements View.OnClickListener {
+
+
+
+        States currentState = model.getCurrentState();
+
+        private boolean CheckIfOperand(char input){
+            if((Character.isDigit(input) || input == '.' )  ){
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+        private boolean ChecktoAppendLH(){
+            if(model.getRightHand().isEmpty() && (currentState.equals(States.CLEAR) || currentState.equals(States.LHS) || currentState.equals(States.RESULT))){
+                return true;
+            }
+            else{
+                return false;
+            }
+
+        }
+        private boolean ChecktoAppendRH(){
+            if(!model.getLeftHand().isEmpty() && (currentState.equals(States.OP_SCHEDULED) || currentState.equals(States.RHS))){
+                return true;
+            }
+            else{
+                return false;
+            }
+
+        }
+        public Boolean equals(){
+            String result = "";
+
+            boolean doubleLeft = (model.getCurrentState().equals(States.OP_SCHEDULED));
+            if(doubleLeft && model.getOriginalNumber().isEmpty()){
+                model.setOriginalNumber(model.getLeftHand());
+            }
+            if(model.getCurrentState().equals(States.CLEAR)){
+                result = "0";
+                return true;
+            }
+
+
+            try{
+                switch(model.getOperator()){
+                    case '+':
+                        if(doubleLeft)
+                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) + Integer.parseInt(model.getOriginalNumber()));
+                        else
+                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) + Integer.parseInt(model.getRightHand()));
+                        break;
+                    case '-':
+                        if(doubleLeft)
+                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) - Integer.parseInt(model.getOriginalNumber()));
+                        else
+                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) - Integer.parseInt(model.getRightHand()));
+                        break;
+                    case 'X':
+                        if(doubleLeft)
+                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) * Integer.parseInt(model.getOriginalNumber()));
+                        else
+                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) * Integer.parseInt(model.getRightHand()));
+                        break;
+                    case '÷':
+                        if(doubleLeft)
+                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) / Integer.parseInt(model.getOriginalNumber()));
+                        else
+                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) / Integer.parseInt(model.getRightHand()));
+                        break;
+
+                }
+
+            }catch(Exception e){
+                model.setCurrentState(States.ERROR);
+                Toast toast = Toast.makeText(binding.getRoot().getContext(), "I'm Mortally WOUNDED!", Toast.LENGTH_SHORT);
+
+                return false;
+            }
+
+            model.clearAndSetLeftHand(result);
+            model.setCurrentState(States.RESULT);
+            return true;
+
+        }
+
+
+        public void onClick(View view) {
+            currentState = model.getCurrentState();
+
+            String tag = view.getTag().toString();
+            char input = ' ';
+            input = tag.charAt(tag.length()-1);
+            Log.i("Btn",String.valueOf(input));
+
+            Toast toast = Toast.makeText(binding.getRoot().getContext(), tag, Toast.LENGTH_SHORT);
+            toast.show();
+            // INSERT EVENT HANDLING CODE HERE
+
+            //check if operator, and check which state
+            if((CheckIfOperand(input) && ChecktoAppendLH())){
+                model.addToLeftHand(input);
+                model.setCurrentState(States.LHS);
+            }
+            else if(CheckIfOperand(input) && ChecktoAppendRH()){
+                model.addToRightHand(input);
+                model.setCurrentState(States.RHS);
+            }
+            else if(input == 'C'){
+                model.clear();
+                model.setCurrentState(States.CLEAR);
+            }
+            else if(input == '='){
+                equals();
+            }
+            else
+            {
+                model.setOperator(input);
+                model.setCurrentState(States.OP_SCHEDULED);
+            }
+            if(model.getCurrentState().equals(States.RESULT))
+                display.setText(model.getLeftHand());
+            else
+                display.setText(String.valueOf(input));
+            Log.i("State", String.valueOf(model.getCurrentState().ordinal()));
+
+
+
+
+        }
+    }
     private ActivityMainBinding binding;
-    private int CHAIN_LENGTH_ROW = 3;
-    private int  CHAIN_LENGTH_COL = 4;
+    private int CHAIN_LENGTH_ROW = 4;
+    private int  CHAIN_LENGTH_COL = 5;
+
+    CalculatorClickHandler click = new CalculatorClickHandler();
+
     private void initLayout(){
+
         ConstraintSet set = new ConstraintSet();
         ConstraintLayout layout = binding.main;
         int[][] btnIdsHort = new int[CHAIN_LENGTH_ROW][CHAIN_LENGTH_COL];
@@ -35,7 +177,7 @@ public class MainActivity extends AppCompatActivity {
         //save ID for later use
         int displayViewID = View.generateViewId();
 
-        TextView display = new TextView(this);
+        display = new TextView(this);
         display.setId(displayViewID);
         display.setText("0");
         display.setTextSize(48);
@@ -77,6 +219,7 @@ public class MainActivity extends AppCompatActivity {
                 btn.setTextSize(24); // set size
                 btnIdsHort[row][col] = id; // store ID to collection
                 btnIdVert[col][row] = id;
+                btn.setOnClickListener(click);
 
                 layout.addView(btn); // add to layout
 
@@ -91,6 +234,7 @@ public class MainActivity extends AppCompatActivity {
                 set.setMargin(id, ConstraintSet.RIGHT, 8);
                 set.setMargin(id, ConstraintSet.BOTTOM, 8);
                 set.applyTo(layout);
+
 
 
 
@@ -110,6 +254,9 @@ public class MainActivity extends AppCompatActivity {
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+        CalculatorClickHandler click = new CalculatorClickHandler();
+
 
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
