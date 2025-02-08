@@ -24,8 +24,8 @@ import saintindustries.cs408.lab3a.databinding.ActivityMainBinding;
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
-    private int CHAIN_LENGTH_ROW = 3;
-    private int  CHAIN_LENGTH_COL = 4;
+    private int CHAIN_LENGTH_ROW = 4;
+    private int  CHAIN_LENGTH_COL = 5;
     private void initLayout(){
         ConstraintSet set = new ConstraintSet();
         ConstraintLayout layout = binding.main;
