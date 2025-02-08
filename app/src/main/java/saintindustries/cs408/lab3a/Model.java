@@ -59,6 +59,10 @@ public class Model {
         this.leftHand = new StringBuilder().append(input);
 
     }
+    public void clearAndSetRightHand(String input){
+        this.rightHand = new StringBuilder().append(input);
+
+    }
     public String getOriginalNumber(){
         return this.originalNumber;
     }

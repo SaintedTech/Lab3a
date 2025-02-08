@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity {
         public Boolean equals(){
             String result = "";
 
-            boolean doubleLeft = (model.getCurrentState().equals(States.OP_SCHEDULED));
+            boolean doubleLeft = (model.getCurrentState().equals(States.OP_SCHEDULED) || model.getCurrentState().equals(States.RESULT) );
             if(doubleLeft && model.getOriginalNumber().isEmpty()){
                 model.setOriginalNumber(model.getLeftHand());
             }
@@ -100,6 +100,13 @@ public class MainActivity extends AppCompatActivity {
                         else
                             result = String.valueOf(Integer.parseInt(model.getLeftHand()) / Integer.parseInt(model.getRightHand()));
                         break;
+                    case '%':
+                        if(doubleLeft)
+                            result = String.valueOf((Integer.parseInt(model.getLeftHand()) / Integer.parseInt(model.getOriginalNumber())) * 100);
+                        else
+                            result = String.valueOf( (Integer.parseInt(model.getLeftHand()) / Integer.parseInt(model.getRightHand())) * 100);
+                        break;
+                        
 
                 }
 
@@ -130,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
             // INSERT EVENT HANDLING CODE HERE
 
             //check if operator, and check which state
+
             if((CheckIfOperand(input) && ChecktoAppendLH())){
                 model.addToLeftHand(input);
                 model.setCurrentState(States.LHS);
@@ -137,6 +145,24 @@ public class MainActivity extends AppCompatActivity {
             else if(CheckIfOperand(input) && ChecktoAppendRH()){
                 model.addToRightHand(input);
                 model.setCurrentState(States.RHS);
+            }
+            else if(input == '√'){
+                if(model.getCurrentState().equals(States.LHS)){
+                    model.clearAndSetLeftHand(String.valueOf(Math.pow(Integer.parseInt(model.getLeftHand()), 0.5)));
+                }
+                else if(model.getCurrentState().equals(States.RHS)){
+                    model.clearAndSetRightHand(String.valueOf(Math.pow(Integer.parseInt(model.getRightHand()), 0.5)));
+                }
+                model.setCurrentState(States.OP_SCHEDULED);
+            }
+            else if(input == '±') {
+                if (model.getCurrentState().equals(States.LHS)) {
+                    model.clearAndSetLeftHand(String.valueOf(Integer.parseInt(model.getLeftHand()) * -1));
+                } else if (model.getCurrentState().equals(States.RHS)) {
+                    model.clearAndSetRightHand(String.valueOf(Integer.parseInt(model.getRightHand()) * -1));
+                }
+                model.setCurrentState(States.OP_SCHEDULED);
+
             }
             else if(input == 'C'){
                 model.clear();
@@ -147,18 +173,17 @@ public class MainActivity extends AppCompatActivity {
             }
             else
             {
+                //when inputing new operator, set LHS to Original.
                 model.setOperator(input);
                 model.setCurrentState(States.OP_SCHEDULED);
+                model.setOriginalNumber(model.getLeftHand());
             }
             if(model.getCurrentState().equals(States.RESULT))
                 display.setText(model.getLeftHand());
             else
                 display.setText(String.valueOf(input));
             Log.i("State", String.valueOf(model.getCurrentState().ordinal()));
-
-
-
-
+            Log.i("Operator", String.valueOf(model.getOperator()));
         }
     }
     private ActivityMainBinding binding;
