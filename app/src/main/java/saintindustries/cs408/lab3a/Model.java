@@ -3,7 +3,7 @@ package saintindustries.cs408.lab3a;
 public class Model {
 
 
-    private StringBuilder leftHand = new StringBuilder();
+    private StringBuilder leftHand = new StringBuilder().append("0");
     private StringBuilder rightHand = new StringBuilder();
     private String originalNumber = "";
     private char operator = ' ';
@@ -47,7 +47,7 @@ public class Model {
     }
 
     public void clear(){
-        this.leftHand = new StringBuilder();
+        this.leftHand = new StringBuilder().append("0");
         this.rightHand = new StringBuilder();
         this.operator = ' ';
         this.currentState = States.CLEAR;

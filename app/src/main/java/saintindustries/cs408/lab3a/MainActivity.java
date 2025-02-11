@@ -22,6 +22,8 @@ import androidx.core.view.WindowInsetsCompat;
 
 import org.w3c.dom.Text;
 
+import java.math.BigDecimal;
+
 import saintindustries.cs408.lab3a.databinding.ActivityMainBinding;
 
 public class MainActivity extends AppCompatActivity {
@@ -63,6 +65,9 @@ public class MainActivity extends AppCompatActivity {
         }
         public Boolean equals(){
             String result = "";
+            BigDecimal LHS = new BigDecimal(model.getLeftHand());
+            BigDecimal RHS = new BigDecimal(model.getRightHand());
+            int rounder = 2;
 
             boolean doubleLeft = (model.getCurrentState().equals(States.OP_SCHEDULED) || model.getCurrentState().equals(States.RESULT) );
             if(doubleLeft && model.getOriginalNumber().isEmpty()){
@@ -100,13 +105,7 @@ public class MainActivity extends AppCompatActivity {
                         else
                             result = String.valueOf(Integer.parseInt(model.getLeftHand()) / Integer.parseInt(model.getRightHand()));
                         break;
-                    case '%':
-                        if(doubleLeft)
-                            result = String.valueOf((Integer.parseInt(model.getLeftHand()) / Integer.parseInt(model.getOriginalNumber())) * 100);
-                        else
-                            result = String.valueOf( (Integer.parseInt(model.getLeftHand()) / Integer.parseInt(model.getRightHand())) * 100);
-                        break;
-                        
+
 
                 }
 
@@ -139,12 +138,22 @@ public class MainActivity extends AppCompatActivity {
             //check if operator, and check which state
 
             if((CheckIfOperand(input) && ChecktoAppendLH())){
-                model.addToLeftHand(input);
+                if(model.getCurrentState().equals(States.CLEAR))
+                    model.clearAndSetLeftHand(String.valueOf(input));
+                else
+                    model.addToLeftHand(input);
                 model.setCurrentState(States.LHS);
             }
             else if(CheckIfOperand(input) && ChecktoAppendRH()){
                 model.addToRightHand(input);
                 model.setCurrentState(States.RHS);
+            }
+            else if(input == '%' && model.getCurrentState().equals(States.RHS)){
+                model.clearAndSetRightHand(String.valueOf(Integer.parseInt(model.getLeftHand()) * Integer.parseInt(model.getRightHand()) / 100));
+            }
+            else if(input == '%' && !model.getCurrentState().equals(States.RHS)){
+                model.setCurrentState(States.CLEAR);
+                model.clear();
             }
             else if(input == '√'){
                 if(model.getCurrentState().equals(States.LHS)){
@@ -153,7 +162,8 @@ public class MainActivity extends AppCompatActivity {
                 else if(model.getCurrentState().equals(States.RHS)){
                     model.clearAndSetRightHand(String.valueOf(Math.pow(Integer.parseInt(model.getRightHand()), 0.5)));
                 }
-                model.setCurrentState(States.OP_SCHEDULED);
+
+
             }
             else if(input == '±') {
                 if (model.getCurrentState().equals(States.LHS)) {
@@ -161,8 +171,6 @@ public class MainActivity extends AppCompatActivity {
                 } else if (model.getCurrentState().equals(States.RHS)) {
                     model.clearAndSetRightHand(String.valueOf(Integer.parseInt(model.getRightHand()) * -1));
                 }
-                model.setCurrentState(States.OP_SCHEDULED);
-
             }
             else if(input == 'C'){
                 model.clear();
@@ -178,10 +186,16 @@ public class MainActivity extends AppCompatActivity {
                 model.setCurrentState(States.OP_SCHEDULED);
                 model.setOriginalNumber(model.getLeftHand());
             }
-            if(model.getCurrentState().equals(States.RESULT))
+            if(model.getCurrentState().equals(States.RESULT) || model.getCurrentState().equals(States.LHS) || model.getCurrentState().equals(States.CLEAR))
                 display.setText(model.getLeftHand());
+            else if (model.getCurrentState().equals(States.RHS))
+                display.setText(model.getRightHand());
+            else if (model.getCurrentState().equals(States.ERROR))
+                display.setText("Error");
             else
                 display.setText(String.valueOf(input));
+
+
             Log.i("State", String.valueOf(model.getCurrentState().ordinal()));
             Log.i("Operator", String.valueOf(model.getOperator()));
         }
