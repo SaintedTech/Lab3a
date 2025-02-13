@@ -1,5 +1,11 @@
 package saintindustries.cs408.lab3a;
 
+import android.widget.Toast;
+
+import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
+
 public class Model {
 
 
@@ -69,6 +75,7 @@ public class Model {
     public void setOriginalNumber(String originalNumber){
         this.originalNumber = originalNumber;
     }
+
 
 
 
