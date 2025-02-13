@@ -37,6 +37,17 @@ public class MainActivity extends AppCompatActivity {
 
         States currentState = model.getCurrentState();
 
+        private void updateDisplay(){
+            if(model.getCurrentState().equals(States.RESULT) || model.getCurrentState().equals(States.LHS) || model.getCurrentState().equals(States.CLEAR))
+                display.setText(model.getLeftHand());
+            else if (model.getCurrentState().equals(States.RHS))
+                display.setText(model.getRightHand());
+            else if (model.getCurrentState().equals(States.ERROR))
+                display.setText("Error hit C to clear");
+            else
+                display.setText(String.valueOf(model.getOperator()));
+        }
+
         private String sqrt(String input){
             try {
                 MathContext mc = new MathContext(9, RoundingMode.HALF_UP);
@@ -148,21 +159,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
 
         }
-
-
-        public void onClick(View view) {
-            currentState = model.getCurrentState();
-
-            String tag = view.getTag().toString();
-            char input = ' ';
-            input = tag.charAt(tag.length()-1);
-            Log.i("Btn",String.valueOf(input));
-
-            Toast toast = Toast.makeText(binding.getRoot().getContext(), tag, Toast.LENGTH_SHORT);
-            toast.show();
-            // INSERT EVENT HANDLING CODE HERE
-
-            //check if operator, and check which state
+        private void parseInput(Character input){
 
             if((CheckIfOperand(input) && ChecktoAppendLH())){
                 if(model.getCurrentState().equals(States.CLEAR) || model.getCurrentState().equals(States.ERROR))
@@ -221,14 +218,23 @@ public class MainActivity extends AppCompatActivity {
                 model.setCurrentState(States.OP_SCHEDULED);
                 model.setOriginalNumber(model.getLeftHand());
             }
-            if(model.getCurrentState().equals(States.RESULT) || model.getCurrentState().equals(States.LHS) || model.getCurrentState().equals(States.CLEAR))
-                display.setText(model.getLeftHand());
-            else if (model.getCurrentState().equals(States.RHS))
-                display.setText(model.getRightHand());
-            else if (model.getCurrentState().equals(States.ERROR))
-                display.setText("Error hit C to clear");
-            else
-                display.setText(String.valueOf(input));
+            updateDisplay();
+        }
+
+        public void onClick(View view) {
+            currentState = model.getCurrentState();
+
+            String tag = view.getTag().toString();
+            char input = ' ';
+            input = tag.charAt(tag.length()-1);
+            Log.i("Btn",String.valueOf(input));
+
+            Toast toast = Toast.makeText(binding.getRoot().getContext(), tag, Toast.LENGTH_SHORT);
+            toast.show();
+            // INSERT EVENT HANDLING CODE HERE
+
+            //parsesInput
+            parseInput(input);
 
 
             Log.i("State", String.valueOf(model.getCurrentState().ordinal()));
