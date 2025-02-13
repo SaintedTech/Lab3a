@@ -3,6 +3,7 @@ package saintindustries.cs408.lab3a;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Display;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,18 +23,52 @@ import androidx.core.view.WindowInsetsCompat;
 
 import org.w3c.dom.Text;
 
+import java.beans.PropertyChangeEvent;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
 
 import saintindustries.cs408.lab3a.databinding.ActivityMainBinding;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AbstractView{
     
 
     Model model = new Model();
+    int displayViewID;
     TextView display;
     private Controller controller;
+    public static final String TAG = "MainActivity";
+
+
+    @Override
+    public void modelPropertyChange(final PropertyChangeEvent evt) {
+
+        /*
+         * This method is called by the "propertyChange()" method of AbstractController
+         * when a change is made to an element of a Model.  It identifies the element that
+         * was changed and updates the View accordingly.
+         */
+
+        String propertyName = evt.getPropertyName();
+        String propertyValue = evt.getNewValue().toString();
+
+        Log.i(TAG, "New " + propertyName + " Value from Model: " + propertyValue);
+
+        if ( propertyName.equals(Controller.DISPLAYTAG) ) {
+
+            TextView display = binding.main.findViewById(displayViewID);
+
+            String oldPropertyValue = display.getText().toString();
+
+            if ( !oldPropertyValue.equals(propertyValue) ) {
+                display.setText(propertyValue);
+            }
+
+        }
+
+
+    }
+
     class CalculatorClickHandler implements View.OnClickListener {
 
 
@@ -50,7 +85,7 @@ public class MainActivity extends AppCompatActivity {
             // INSERT EVENT HANDLING CODE HERE
 
             //parsesInput
-            Controller.parseInput(input);
+            controller.parseInput(input);
 
 
             Log.i("State", String.valueOf(model.getCurrentState().ordinal()));
@@ -71,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         int[][] btnIdVert = new int[CHAIN_LENGTH_COL][CHAIN_LENGTH_ROW];
 
         //save ID for later use
-        int displayViewID = View.generateViewId();
+        displayViewID = View.generateViewId();
 
         display = new TextView(this);
         display.setId(displayViewID);
@@ -151,7 +186,16 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
+
         CalculatorClickHandler click = new CalculatorClickHandler();
+
+        controller = new Controller();
+        Model model = new Model();
+
+        /* Register Activity View and Model with Controller */
+
+        controller.addView(this);
+        controller.addModel(model);
 
 
         super.onCreate(savedInstanceState);
