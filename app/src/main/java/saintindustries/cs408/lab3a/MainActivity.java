@@ -23,6 +23,8 @@ import androidx.core.view.WindowInsetsCompat;
 import org.w3c.dom.Text;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
+import java.math.RoundingMode;
 
 import saintindustries.cs408.lab3a.databinding.ActivityMainBinding;
 
@@ -33,9 +35,52 @@ public class MainActivity extends AppCompatActivity {
     TextView display;
     class CalculatorClickHandler implements View.OnClickListener {
 
-
-
         States currentState = model.getCurrentState();
+
+        private String sqrt(String input){
+            try {
+                MathContext mc = new MathContext(9, RoundingMode.HALF_UP);
+                BigDecimal num = BigDecimal.valueOf(Double.parseDouble(input));
+                num = num.pow(new BigDecimal(0.5).intValue());
+                return num.toString();
+            }catch(Exception e){
+                model.setCurrentState(States.ERROR);
+                return "Error hit C to clear";
+
+
+            }
+        }
+        private String percent(){
+            try{
+            MathContext mc = new MathContext(9, RoundingMode.HALF_UP);
+            BigDecimal LHS = new BigDecimal(model.getLeftHand());
+            BigDecimal RHS = new BigDecimal(model.getRightHand());
+            LHS = LHS.multiply(RHS);
+            LHS = LHS.divide(new BigDecimal("100"), mc);
+            return LHS.toString();
+
+            } catch (Exception e) {
+                model.setCurrentState(States.ERROR);
+                return "Error hit c to clear";
+            }
+
+
+
+        }
+        private String sign(String input){
+            try {
+                BigDecimal num = new BigDecimal(input);
+                num = num.multiply(new BigDecimal("-1"));
+                return num.toString();
+            }
+            catch(Exception e){
+                model.setCurrentState(States.ERROR);
+                return "Error hit C to clear";
+            }
+
+
+
+        }
 
         private boolean CheckIfOperand(char input){
             if((Character.isDigit(input) || input == '.' )  ){
@@ -63,16 +108,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
         }
-        public Boolean equals(){
+        public Boolean equals(BigDecimal RHS){
             String result = "";
             BigDecimal LHS = new BigDecimal(model.getLeftHand());
-            BigDecimal RHS = new BigDecimal(model.getRightHand());
-            int rounder = 2;
 
-            boolean doubleLeft = (model.getCurrentState().equals(States.OP_SCHEDULED) || model.getCurrentState().equals(States.RESULT) );
-            if(doubleLeft && model.getOriginalNumber().isEmpty()){
-                model.setOriginalNumber(model.getLeftHand());
-            }
+            BigDecimal resultBig = new BigDecimal(0);
+            MathContext mc = new MathContext(9, RoundingMode.HALF_UP);
             if(model.getCurrentState().equals(States.CLEAR)){
                 result = "0";
                 return true;
@@ -82,31 +123,17 @@ public class MainActivity extends AppCompatActivity {
             try{
                 switch(model.getOperator()){
                     case '+':
-                        if(doubleLeft)
-                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) + Integer.parseInt(model.getOriginalNumber()));
-                        else
-                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) + Integer.parseInt(model.getRightHand()));
+                           resultBig = LHS.add(RHS, mc);
                         break;
                     case '-':
-                        if(doubleLeft)
-                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) - Integer.parseInt(model.getOriginalNumber()));
-                        else
-                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) - Integer.parseInt(model.getRightHand()));
+                          resultBig = LHS.subtract(RHS, mc);
                         break;
                     case 'X':
-                        if(doubleLeft)
-                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) * Integer.parseInt(model.getOriginalNumber()));
-                        else
-                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) * Integer.parseInt(model.getRightHand()));
+                            resultBig = LHS.multiply(RHS, mc);
                         break;
                     case '÷':
-                        if(doubleLeft)
-                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) / Integer.parseInt(model.getOriginalNumber()));
-                        else
-                            result = String.valueOf(Integer.parseInt(model.getLeftHand()) / Integer.parseInt(model.getRightHand()));
+                            resultBig = LHS.divide(RHS, mc);
                         break;
-
-
                 }
 
             }catch(Exception e){
@@ -115,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
 
                 return false;
             }
-
+            result = resultBig.toString();
             model.clearAndSetLeftHand(result);
             model.setCurrentState(States.RESULT);
             return true;
@@ -138,7 +165,7 @@ public class MainActivity extends AppCompatActivity {
             //check if operator, and check which state
 
             if((CheckIfOperand(input) && ChecktoAppendLH())){
-                if(model.getCurrentState().equals(States.CLEAR))
+                if(model.getCurrentState().equals(States.CLEAR) || model.getCurrentState().equals(States.ERROR))
                     model.clearAndSetLeftHand(String.valueOf(input));
                 else
                     model.addToLeftHand(input);
@@ -149,7 +176,8 @@ public class MainActivity extends AppCompatActivity {
                 model.setCurrentState(States.RHS);
             }
             else if(input == '%' && model.getCurrentState().equals(States.RHS)){
-                model.clearAndSetRightHand(String.valueOf(Integer.parseInt(model.getLeftHand()) * Integer.parseInt(model.getRightHand()) / 100));
+                model.clearAndSetLeftHand(percent());
+
             }
             else if(input == '%' && !model.getCurrentState().equals(States.RHS)){
                 model.setCurrentState(States.CLEAR);
@@ -157,19 +185,18 @@ public class MainActivity extends AppCompatActivity {
             }
             else if(input == '√'){
                 if(model.getCurrentState().equals(States.LHS)){
-                    model.clearAndSetLeftHand(String.valueOf(Math.pow(Integer.parseInt(model.getLeftHand()), 0.5)));
+                    model.clearAndSetLeftHand(sqrt(model.getLeftHand()));
                 }
                 else if(model.getCurrentState().equals(States.RHS)){
-                    model.clearAndSetRightHand(String.valueOf(Math.pow(Integer.parseInt(model.getRightHand()), 0.5)));
+                    model.clearAndSetRightHand(sqrt(model.getRightHand()));
                 }
-
-
             }
             else if(input == '±') {
                 if (model.getCurrentState().equals(States.LHS)) {
-                    model.clearAndSetLeftHand(String.valueOf(Integer.parseInt(model.getLeftHand()) * -1));
+                    model.clearAndSetLeftHand(sign(model.getLeftHand()));
                 } else if (model.getCurrentState().equals(States.RHS)) {
-                    model.clearAndSetRightHand(String.valueOf(Integer.parseInt(model.getRightHand()) * -1));
+
+                    model.clearAndSetRightHand(sign(model.getRightHand()));
                 }
             }
             else if(input == 'C'){
@@ -177,7 +204,15 @@ public class MainActivity extends AppCompatActivity {
                 model.setCurrentState(States.CLEAR);
             }
             else if(input == '='){
-                equals();
+                boolean doubleLeft = (model.getCurrentState().equals(States.OP_SCHEDULED) || model.getCurrentState().equals(States.RESULT) );
+                if(doubleLeft && model.getOriginalNumber().isEmpty()){
+                    model.setOriginalNumber(model.getLeftHand());
+                }
+                if(model.getCurrentState().equals(States.LHS)){
+                    equals(new BigDecimal(model.getOriginalNumber()));
+                }
+                else
+                    equals(new BigDecimal(model.getRightHand()));
             }
             else
             {
@@ -191,7 +226,7 @@ public class MainActivity extends AppCompatActivity {
             else if (model.getCurrentState().equals(States.RHS))
                 display.setText(model.getRightHand());
             else if (model.getCurrentState().equals(States.ERROR))
-                display.setText("Error");
+                display.setText("Error hit C to clear");
             else
                 display.setText(String.valueOf(input));
 
