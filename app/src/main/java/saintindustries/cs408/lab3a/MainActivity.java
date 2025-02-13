@@ -75,8 +75,6 @@ public class MainActivity extends AppCompatActivity {
                 return "Error hit c to clear";
             }
 
-
-
         }
         private String sign(String input){
             try {
@@ -88,8 +86,6 @@ public class MainActivity extends AppCompatActivity {
                 model.setCurrentState(States.ERROR);
                 return "Error hit C to clear";
             }
-
-
 
         }
 
