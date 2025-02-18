@@ -1,5 +1,6 @@
 package saintindustries.cs408.lab3a;
 
+import android.util.Log;
 import android.widget.Toast;
 
 import java.beans.PropertyChangeListener;
@@ -7,16 +8,20 @@ import java.beans.PropertyChangeSupport;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 
 public class Model {
 
 
-    private StringBuilder leftHand = new StringBuilder().append("0");
+
+    private StringBuilder leftHand = new StringBuilder();
     private StringBuilder rightHand = new StringBuilder();
     private String originalNumber = "";
     private String output = "0";
     private char operator = ' ';
     private States currentState = States.CLEAR;
+
+    private DecimalFormat df = new DecimalFormat("0.#####E0");
 
     protected PropertyChangeSupport propertyChangeSupport;
 
@@ -24,6 +29,7 @@ public class Model {
 
     public Model() {
         propertyChangeSupport = new PropertyChangeSupport(this);
+
     }
 
 
@@ -43,8 +49,23 @@ public class Model {
     // Getters
 
     public void updateDisplay(String input){
-        firePropertyChange(Controller.DISPLAYTAG, output, input);
-        this.output = input;
+
+        if(input.length() >= 8) {
+            String sendIt = "";
+            try {
+                BigDecimal value = new BigDecimal(input);
+
+                sendIt = df.format(value);
+
+            } catch (Exception e) {
+                Log.i("MyTag", "Failed to update display");
+            }
+            firePropertyChange(Controller.DISPLAYTAG, output, sendIt);
+            this.output = sendIt;
+        }else{
+            firePropertyChange(Controller.DISPLAYTAG, output, input);
+            this.output = input;
+        }
     }
     public String getLeftHand() {
         return leftHand.toString();
@@ -65,12 +86,12 @@ public class Model {
     // Setters
     public void addToLeftHand(char leftHand) {
         this.leftHand.append(leftHand);
-        this.updateDisplay(String.valueOf(leftHand));
+        this.updateDisplay(String.valueOf(this.getLeftHand()));
     }
 
     public void addToRightHand(char rightHand) {
         this.rightHand.append(rightHand);
-        this.updateDisplay(String.valueOf(rightHand));
+        this.updateDisplay(String.valueOf(this.getRightHand()));
     }
 
     public void setOperator(char operator) {
@@ -83,7 +104,7 @@ public class Model {
     }
 
     public void clear() {
-        this.leftHand = new StringBuilder().append("0");
+        this.leftHand = new StringBuilder();
         this.rightHand = new StringBuilder();
         this.operator = ' ';
         this.currentState = States.CLEAR;
@@ -94,13 +115,13 @@ public class Model {
 
     public void clearAndSetLeftHand(String input) {
         this.leftHand = new StringBuilder().append(input);
-        this.updateDisplay(input);
+        this.updateDisplay(this.getLeftHand());
 
     }
 
     public void clearAndSetRightHand(String input) {
         this.rightHand = new StringBuilder().append(input);
-        this.updateDisplay(input);
+        this.updateDisplay(this.getRightHand());
 
     }
 
@@ -109,9 +130,6 @@ public class Model {
     }
 
     public void setOriginalNumber(String originalNumber) {
-        if (originalNumber == null) {
-            this.originalNumber = this.getLeftHand();
-        } else
             this.originalNumber = originalNumber;
 
     }
@@ -119,9 +137,9 @@ public class Model {
 
     public String sqrt(String input) {
         try {
-            MathContext mc = new MathContext(9, RoundingMode.HALF_UP);
-            BigDecimal num = BigDecimal.valueOf(Double.parseDouble(input));
-            num = num.pow(new BigDecimal(0.5).intValue());
+            MathContext mc = new MathContext(4, RoundingMode.HALF_UP);
+            Double num = Double.parseDouble(input);
+            num = Math.pow(num, 0.5);
             return num.toString();
         } catch (Exception e) {
             this.setCurrentState(States.ERROR);
@@ -129,18 +147,18 @@ public class Model {
         }
     }
 
-    public String percent() {
+    public void percent() {
         try {
             MathContext mc = new MathContext(9, RoundingMode.HALF_UP);
             BigDecimal LHS = new BigDecimal(this.getLeftHand());
             BigDecimal RHS = new BigDecimal(this.getRightHand());
-            LHS = LHS.multiply(RHS);
-            LHS = LHS.divide(new BigDecimal("100"), mc);
-            return LHS.toString();
+            RHS = LHS.multiply(RHS);
+            RHS = RHS.divide(new BigDecimal("100"), mc);
+            this.clearAndSetRightHand(RHS.toString());
+
 
         } catch (Exception e) {
             this.setCurrentState(States.ERROR);
-            return "Error hit c to clear";
         }
 
     }
@@ -215,6 +233,8 @@ public class Model {
 
         } catch (Exception e) {
             this.setCurrentState(States.ERROR);
+            this.updateDisplay("Error hit c to clear");
+
             return false;
         }
 
@@ -227,10 +247,11 @@ public class Model {
 
     }
 
-    public void parseInput(Character input) {
+    public void setInput(Character input) {
+        Log.i("MyTag", "It is attempting to parse input (Inside Model)");
 
         if ((CheckIfOperand(input) && ChecktoAppendLH())) {
-            if (this.getCurrentState().equals(States.CLEAR) || this.getCurrentState().equals(States.ERROR))
+            if (this.getCurrentState().equals(States.CLEAR) || this.getCurrentState().equals(States.ERROR) || this.getCurrentState().equals(States.RESULT))
                 this.clearAndSetLeftHand(String.valueOf(input));
             else
                 this.addToLeftHand(input);
@@ -239,7 +260,7 @@ public class Model {
             this.addToRightHand(input);
             this.setCurrentState(States.RHS);
         } else if (input == '%' && this.getCurrentState().equals(States.RHS)) {
-            this.clearAndSetLeftHand(percent());
+            percent();
 
         } else if (input == '%' && !this.getCurrentState().equals(States.RHS)) {
             this.setCurrentState(States.CLEAR);
@@ -260,11 +281,15 @@ public class Model {
             this.clear();
             this.setCurrentState(States.CLEAR);
         } else if (input == '=') {
+
             boolean doubleLeft = (this.getCurrentState().equals(States.OP_SCHEDULED) || this.getCurrentState().equals(States.RESULT));
-            if (doubleLeft && this.getOriginalNumber().isEmpty()) {
-                this.setOriginalNumber(null);
+            if(doubleLeft && this.getLeftHand().isEmpty()){
+                updateDisplay("0");
             }
-            if (this.getCurrentState().equals(States.LHS)) {
+            else if (doubleLeft && this.getOriginalNumber().isEmpty()) {
+                this.setOriginalNumber(this.getLeftHand());
+            }
+            if (doubleLeft) {
                 equals(new BigDecimal(this.getOriginalNumber()));
             } else
                 equals(new BigDecimal(this.getRightHand()));
@@ -273,8 +298,12 @@ public class Model {
             //when inputing new operator, set LHS to Original.
             this.setOperator(input);
             this.setCurrentState(States.OP_SCHEDULED);
-            setOriginalNumber(null);
+            setOriginalNumber(this.getLeftHand());
         }
+
+
+        Log.i("MyState", String.valueOf(this.getCurrentState().ordinal()));
+        Log.i("Operator", String.valueOf(this.getOperator()));
 
 
     }

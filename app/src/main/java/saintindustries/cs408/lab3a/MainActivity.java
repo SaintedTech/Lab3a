@@ -42,6 +42,7 @@ public class MainActivity extends AppCompatActivity implements AbstractView{
 
     @Override
     public void modelPropertyChange(final PropertyChangeEvent evt) {
+        Log.i("MyTag", "It's attempting to update display");
 
         /*
          * This method is called by the "propertyChange()" method of AbstractController
@@ -51,7 +52,9 @@ public class MainActivity extends AppCompatActivity implements AbstractView{
 
         String propertyName = evt.getPropertyName();
         String propertyValue = evt.getNewValue().toString();
+        Toast toast = Toast.makeText(binding.getRoot().getContext(), "Attempted to update", Toast.LENGTH_SHORT);
 
+        toast.show();
         Log.i(TAG, "New " + propertyName + " Value from Model: " + propertyValue);
 
         if ( propertyName.equals(Controller.DISPLAYTAG) ) {
@@ -61,6 +64,7 @@ public class MainActivity extends AppCompatActivity implements AbstractView{
             String oldPropertyValue = display.getText().toString();
 
             if ( !oldPropertyValue.equals(propertyValue) ) {
+
                 display.setText(propertyValue);
             }
 
@@ -80,16 +84,15 @@ public class MainActivity extends AppCompatActivity implements AbstractView{
             input = tag.charAt(tag.length()-1);
             Log.i("Btn",String.valueOf(input));
 
-            Toast toast = Toast.makeText(binding.getRoot().getContext(), tag, Toast.LENGTH_SHORT);
-            toast.show();
+            //Toast toast = Toast.makeText(binding.getRoot().getContext(), tag, Toast.LENGTH_SHORT);
+
             // INSERT EVENT HANDLING CODE HERE
 
             //parsesInput
+            Log.i("MyTag", "It is attempting to parse input (Inside MAC)");
             controller.parseInput(input);
 
 
-            Log.i("State", String.valueOf(model.getCurrentState().ordinal()));
-            Log.i("Operator", String.valueOf(model.getOperator()));
         }
     }
     private ActivityMainBinding binding;
@@ -193,6 +196,7 @@ public class MainActivity extends AppCompatActivity implements AbstractView{
         Model model = new Model();
 
         /* Register Activity View and Model with Controller */
+
 
         controller.addView(this);
         controller.addModel(model);

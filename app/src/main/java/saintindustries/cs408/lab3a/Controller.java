@@ -1,5 +1,8 @@
 package saintindustries.cs408.lab3a;
 
+import android.util.Log;
+import android.widget.Toast;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.lang.reflect.Method;
@@ -111,22 +114,11 @@ public class Controller implements PropertyChangeListener {
 
     }
 
-    /*
-    private void updateDisplay(){
-        if(model.getCurrentState().equals(States.RESULT) || model.getCurrentState().equals(States.LHS) || model.getCurrentState().equals(States.CLEAR))
-            display.setText(model.getLeftHand());
-        else if (model.getCurrentState().equals(States.RHS))
-            display.setText(model.getRightHand());
-        else if (model.getCurrentState().equals(States.ERROR))
-            display.setText("Error hit C to clear");
-        else
-            display.setText(String.valueOf(model.getOperator()));
-    }
-
-     */
 
     public void parseInput(Character input){
-        setModelProperty("parseInput", input);
+        Log.i("MyTag", "It is attempting to parse input (Inside contoller)");
+        setModelProperty("Input", input);
+
     }
 
 
