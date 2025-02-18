@@ -50,7 +50,12 @@ public class Model {
 
     public void updateDisplay(String input){
 
-        if(input.length() >= 8) {
+        if(this.getCurrentState().equals(States.ERROR)){
+            firePropertyChange(Controller.DISPLAYTAG, output, "Error hit C to clear");
+            this.output = input;
+        }
+
+        else if(input.length() >= 8) {
             String sendIt = "";
             try {
                 BigDecimal value = new BigDecimal(input);
@@ -59,6 +64,7 @@ public class Model {
 
             } catch (Exception e) {
                 Log.i("MyTag", "Failed to update display");
+
             }
             firePropertyChange(Controller.DISPLAYTAG, output, sendIt);
             this.output = sendIt;
@@ -86,17 +92,19 @@ public class Model {
     // Setters
     public void addToLeftHand(char leftHand) {
         this.leftHand.append(leftHand);
+        //this.leftHand = new StringBuilder().append(new BigDecimal(this.getLeftHand()).toString());
         this.updateDisplay(String.valueOf(this.getLeftHand()));
     }
 
     public void addToRightHand(char rightHand) {
         this.rightHand.append(rightHand);
+       // this.rightHand = new StringBuilder().append(new BigDecimal(this.getRightHand()).toString());
         this.updateDisplay(String.valueOf(this.getRightHand()));
     }
 
     public void setOperator(char operator) {
         this.operator = operator;
-        this.updateDisplay(String.valueOf(operator));
+
     }
 
     public void setCurrentState(States currentState) {
@@ -118,6 +126,9 @@ public class Model {
         this.updateDisplay(this.getLeftHand());
 
     }
+    public void clearAndSetRightHand(){
+        this.rightHand = new StringBuilder();
+    }
 
     public void clearAndSetRightHand(String input) {
         this.rightHand = new StringBuilder().append(input);
@@ -130,9 +141,10 @@ public class Model {
     }
 
     public void setOriginalNumber(String originalNumber) {
-            this.originalNumber = originalNumber;
+        this.originalNumber = originalNumber;
 
     }
+
 
 
     public String sqrt(String input) {
@@ -155,6 +167,7 @@ public class Model {
             RHS = LHS.multiply(RHS);
             RHS = RHS.divide(new BigDecimal("100"), mc);
             this.clearAndSetRightHand(RHS.toString());
+            this.updateDisplay(this.getRightHand());
 
 
         } catch (Exception e) {
@@ -179,6 +192,14 @@ public class Model {
         if ((Character.isDigit(input) || input == '.')) {
             return true;
         } else {
+            return false;
+        }
+    }
+    public boolean CheckIfOperator(char input){
+        if(input=='+' || input=='-' || input=='÷' || input=='X'){
+            return true;
+        }
+        else{
             return false;
         }
     }
@@ -241,6 +262,10 @@ public class Model {
         result = resultBig.toString();
         this.clearAndSetLeftHand(result);
         this.setCurrentState(States.RESULT);
+        this.clearAndSetRightHand();
+        Log.i("Result", result);
+
+
         this.updateDisplay(result);
 
         return true;
@@ -256,25 +281,35 @@ public class Model {
             else
                 this.addToLeftHand(input);
             this.setCurrentState(States.LHS);
+            this.setOriginalNumber(String.valueOf(input));
         } else if (CheckIfOperand(input) && ChecktoAppendRH()) {
             this.addToRightHand(input);
             this.setCurrentState(States.RHS);
-        } else if (input == '%' && this.getCurrentState().equals(States.RHS)) {
+            this.setOriginalNumber(String.valueOf(input));
+
+        }
+        else if(CheckIfOperand(input) && this.getCurrentState().equals(States.UNI) ){
+            this.clearAndSetRightHand(String.valueOf(input));
+            this.setCurrentState(States.RHS);
+        }
+
+        else if (input == '%' && this.getCurrentState().equals(States.RHS)) {
             percent();
+            this.setCurrentState(States.UNI);
 
         } else if (input == '%' && !this.getCurrentState().equals(States.RHS)) {
             this.setCurrentState(States.CLEAR);
             this.clear();
         } else if (input == '√') {
-            if (this.getCurrentState().equals(States.LHS)) {
+            if (this.getCurrentState().equals(States.LHS) || this.getCurrentState().equals(States.RESULT)) {
                 this.clearAndSetLeftHand(sqrt(this.getLeftHand()));
             } else if (this.getCurrentState().equals(States.RHS)) {
                 this.clearAndSetRightHand(sqrt(this.getRightHand()));
             }
         } else if (input == '±') {
-            if (this.getCurrentState().equals(States.LHS)) {
+            if (this.getCurrentState().equals(States.LHS) || this.getCurrentState().equals(States.RESULT)) {
                 this.clearAndSetLeftHand(sign(this.getLeftHand()));
-            } else if (this.getCurrentState().equals(States.RHS)) {
+            } else if (this.getCurrentState().equals(States.RHS) ) {
                 this.clearAndSetRightHand(sign(this.getRightHand()));
             }
         } else if (input == 'C') {
@@ -286,25 +321,59 @@ public class Model {
             if(doubleLeft && this.getLeftHand().isEmpty()){
                 updateDisplay("0");
             }
+            else if(this.getCurrentState().equals(States.RHS) || this.getCurrentState().equals(States.UNI)){
+                equals(new BigDecimal(this.getRightHand()));
+
+            }
+            /*
             else if (doubleLeft && this.getOriginalNumber().isEmpty()) {
                 this.setOriginalNumber(this.getLeftHand());
             }
-            if (doubleLeft) {
+
+             */
+
+            else if (doubleLeft) {
                 equals(new BigDecimal(this.getOriginalNumber()));
-            } else
-                equals(new BigDecimal(this.getRightHand()));
+            }
+
+
 
         } else {
             //when inputing new operator, set LHS to Original.
-            this.setOperator(input);
-            this.setCurrentState(States.OP_SCHEDULED);
-            setOriginalNumber(this.getLeftHand());
+
+
+            if(this.getCurrentState().equals(States.RHS) && this.CheckIfOperator(input)){
+                equals(new BigDecimal(this.getRightHand()));
+                this.setOperator(input);
+                this.setCurrentState(States.OP_SCHEDULED);
+                setOriginalNumber(this.getLeftHand());
+                this.clearAndSetRightHand();
+
+            }
+           else if(this.getCurrentState().equals(States.LHS) && this.CheckIfOperator(input)){
+                this.setOperator(input);
+                this.updateDisplay(String.valueOf(input));
+                this.setCurrentState(States.OP_SCHEDULED);
+                setOriginalNumber(this.getLeftHand());
+            }
+            else if (this.CheckIfOperator(input) && (this.getCurrentState().equals(States.RESULT) || this.getCurrentState().equals(States.LHS))){
+                this.setOperator(input);
+                this.updateDisplay(String.valueOf(input));
+                this.setCurrentState(States.OP_SCHEDULED);
+                setOriginalNumber(this.getLeftHand());
+            }
+            else if(this.CheckIfOperator(input) && this.getCurrentState().equals(States.OP_SCHEDULED)){
+                this.setOperator(input);
+                this.setCurrentState(States.OP_SCHEDULED);
+                this.updateDisplay(String.valueOf(input));
+            }
+
         }
 
 
-        Log.i("MyState", String.valueOf(this.getCurrentState().ordinal()));
-        Log.i("Operator", String.valueOf(this.getOperator()));
 
+        Log.i("Operator", String.valueOf(this.getOperator()));
+        Log.i("MyState", String.valueOf(this.getCurrentState().ordinal()));
 
     }
 }
