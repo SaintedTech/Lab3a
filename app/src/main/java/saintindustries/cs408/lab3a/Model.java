@@ -92,13 +92,13 @@ public class Model {
     // Setters
     public void addToLeftHand(char leftHand) {
         this.leftHand.append(leftHand);
-        //this.leftHand = new StringBuilder().append(new BigDecimal(this.getLeftHand()).toString());
+        this.leftHand = new StringBuilder().append(new BigDecimal(this.getLeftHand()).toString());
         this.updateDisplay(String.valueOf(this.getLeftHand()));
     }
 
     public void addToRightHand(char rightHand) {
         this.rightHand.append(rightHand);
-       // this.rightHand = new StringBuilder().append(new BigDecimal(this.getRightHand()).toString());
+        this.rightHand = new StringBuilder().append(new BigDecimal(this.getRightHand()).toString());
         this.updateDisplay(String.valueOf(this.getRightHand()));
     }
 
@@ -309,8 +309,10 @@ public class Model {
         } else if (input == '±') {
             if (this.getCurrentState().equals(States.LHS) || this.getCurrentState().equals(States.RESULT)) {
                 this.clearAndSetLeftHand(sign(this.getLeftHand()));
+                setCurrentState(States.LHS);
             } else if (this.getCurrentState().equals(States.RHS) ) {
                 this.clearAndSetRightHand(sign(this.getRightHand()));
+                setCurrentState(States.RHS);
             }
         } else if (input == 'C') {
             this.clear();
@@ -350,7 +352,7 @@ public class Model {
                 this.clearAndSetRightHand();
 
             }
-           else if(this.getCurrentState().equals(States.LHS) && this.CheckIfOperator(input)){
+            else if(this.getCurrentState().equals(States.LHS) && this.CheckIfOperator(input)){
                 this.setOperator(input);
                 this.updateDisplay(String.valueOf(input));
                 this.setCurrentState(States.OP_SCHEDULED);
